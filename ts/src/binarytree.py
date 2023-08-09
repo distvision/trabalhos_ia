@@ -1,3 +1,5 @@
+from collections import deque
+
 class TreeNode:
     def __init__(self, key):
         self.key = key
@@ -73,6 +75,60 @@ class BinaryTree:
             result.append(node.key)
             self._inorder_rec(node.right, result)
 
+
+    def breadth_first_search(self):
+        result = []
+        if self.root is None:
+            return result
+        
+        queue = deque()
+        queue.append(self.root)
+        
+        while queue:
+            node = queue.popleft()
+            result.append(node.key)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        return result
+    
+    def depth_first_search_preorder(self):
+        return self._dfs_preorder_rec(self.root)
+    
+    def _dfs_preorder_rec(self, node):
+        result = []
+        if node:
+            result.append(node.key)
+            result.extend(self._dfs_preorder_rec(node.left))
+            result.extend(self._dfs_preorder_rec(node.right))
+        return result
+    
+    def depth_first_search_inorder(self):
+        return self._dfs_inorder_rec(self.root)
+    
+    def _dfs_inorder_rec(self, node):
+        result = []
+        if node:
+            result.extend(self._dfs_inorder_rec(node.left))
+            result.append(node.key)
+            result.extend(self._dfs_inorder_rec(node.right))
+        return result
+    
+    def depth_first_search_postorder(self):
+        return self._dfs_postorder_rec(self.root)
+    
+    def _dfs_postorder_rec(self, node):
+        result = []
+        if node:
+            result.extend(self._dfs_postorder_rec(node.left))
+            result.extend(self._dfs_postorder_rec(node.right))
+            result.append(node.key)
+        return result
+
+
 # Exemplo de uso
 tree = BinaryTree()
 tree.insert(5)
@@ -90,3 +146,16 @@ print("Procurando valor 6:", tree.search(6))
 tree.delete(3)
 print("Árvore após a exclusão do valor 3:")
 print(tree.inorder_traversal())
+
+# Exemplo de uso busca eme largura e em profundidade
+tree = BinaryTree()
+tree.insert(5)
+tree.insert(3)
+tree.insert(7)
+tree.insert(2)
+tree.insert(4)
+
+print("Busca em largura (BFS):", tree.breadth_first_search())
+print("Busca em profundidade (Pré-ordem):", tree.depth_first_search_preorder())
+print("Busca em profundidade (Inordem):", tree.depth_first_search_inorder())
+print("Busca em profundidade (Pós-ordem):", tree.depth_first_search_postorder())
