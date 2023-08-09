@@ -1,10 +1,10 @@
 class TreeNode {
-  value: number;
+  key: number;
   left: TreeNode | null;
   right: TreeNode | null;
 
-  constructor(value: number) {
-    this.value = value;
+  constructor(key: number) {
+    this.key = key;
     this.left = null;
     this.right = null;
   }
@@ -17,106 +17,189 @@ class BinaryTree {
     this.root = null;
   }
 
-  // Create (Insert) operation
-  insert(value: number): void {
-    const newNode = new TreeNode(value);
+  insert(key: number): void {
+    this.root = this._insertRec(this.root, key);
+  }
 
-    if (!this.root) {
-      this.root = newNode;
+  _insertRec(node: TreeNode | null, key: number): TreeNode {
+    if (node === null) {
+      return new TreeNode(key);
+    }
+
+    if (key < node.key) {
+      node.left = this._insertRec(node.left, key);
     } else {
-      this._insertRecursively(this.root, newNode);
-    }
-  }
-
-  private _insertRecursively(node: TreeNode, newNode: TreeNode): void {
-    if (newNode.value < node.value) {
-      if (!node.left) {
-        node.left = newNode;
-      } else {
-        this._insertRecursively(node.left, newNode);
-      }
-    } else if (newNode.value > node.value) {
-      if (!node.right) {
-        node.right = newNode;
-      } else {
-        this._insertRecursively(node.right, newNode);
-      }
-    }
-  }
-
-  // Read (Search) operation
-  search(value: number): TreeNode | null {
-    return this._searchRecursively(this.root, value);
-  }
-
-  private _searchRecursively(node: TreeNode | null, value: number): TreeNode | null {
-    if (!node) {
-      return null;
-    }
-
-    if (node.value === value) {
-      return node;
-    } else if (value < node.value) {
-      return this._searchRecursively(node.left, value);
-    } else {
-      return this._searchRecursively(node.right, value);
-    }
-  }
-
-  // Update operation (Not typically performed directly on binary trees)
-
-  // Delete operation
-  delete(value: number): void {
-    if (!this.root) {
-      return;
-    }
-
-    this.root = this._deleteRecursively(this.root, value);
-  }
-
-  private _deleteRecursively(node: TreeNode | null, value: number): TreeNode | null {
-    if (!node) {
-      return null;
-    }
-
-    if (value < node.value) {
-      node.left = this._deleteRecursively(node.left, value);
-    } else if (value > node.value) {
-      node.right = this._deleteRecursively(node.right, value);
-    } else {
-      if (!node.left) {
-        return node.right;
-      } else if (!node.right) {
-        return node.left;
-      }
-
-      const minValue = this._findMinValue(node.right);
-      node.value = minValue;
-      node.right = this._deleteRecursively(node.right, minValue);
+      node.right = this._insertRec(node.right, key);
     }
 
     return node;
   }
 
-  private _findMinValue(node: TreeNode): number {
-    while (node.left) {
+  search(key: number): TreeNode | null {
+    return this._searchRec(this.root, key);
+  }
+
+  _searchRec(node: TreeNode | null, key: number): TreeNode | null {
+    if (node === null || node.key === key) {
+      return node;
+    }
+
+    if (key < node.key) {
+      return this._searchRec(node.left, key);
+    } else {
+      return this._searchRec(node.right, key);
+    }
+  }
+
+  delete(key: number): void {
+    this.root = this._deleteRec(this.root, key);
+  }
+
+  _deleteRec(node: TreeNode | null, key: number): TreeNode | null {
+    if (node === null) {
+      return node;
+    }
+
+    if (key < node.key) {
+      node.left = this._deleteRec(node.left, key);
+    } else if (key > node.key) {
+      node.right = this._deleteRec(node.right, key);
+    } else {
+      if (node.left === null) {
+        return node.right;
+      } else if (node.right === null) {
+        return node.left;
+      }
+
+      const temp = this._findMin(node.right);
+      node.key = temp.key;
+      node.right = this._deleteRec(node.right, temp.key);
+    }
+
+    return node;
+  }
+
+  _findMin(node: TreeNode): TreeNode {
+    while (node.left !== null) {
       node = node.left;
     }
-    return node.value;
+    return node;
+  }
+
+  inorderTraversal(): number[] {
+    const result: number[] = [];
+    this._inorderRec(this.root, result);
+    return result;
+  }
+
+  _inorderRec(node: TreeNode | null, result: number[]): void {
+    if (node !== null) {
+      this._inorderRec(node.left, result);
+      result.push(node.key);
+      this._inorderRec(node.right, result);
+    }
+  }
+
+  breadthFirstSearch(): number[] {
+    const result: number[] = [];
+    if (this.root === null) {
+      return result;
+    }
+
+    const queue: TreeNode[] = [];
+    queue.push(this.root);
+
+    while (queue.length > 0) {
+      const node = queue.shift()!;
+      result.push(node.key);
+
+      if (node.left !== null) {
+        queue.push(node.left);
+      }
+      if (node.right !== null) {
+        queue.push(node.right);
+      }
+    }
+
+    return result;
+  }
+
+  depthFirstSearchPreorder(): number[] {
+    return this._dfsPreorderRec(this.root);
+  }
+
+  _dfsPreorderRec(node: TreeNode | null): number[] {
+    const result: number[] = [];
+    if (node !== null) {
+      result.push(node.key);
+      result.push(...this._dfsPreorderRec(node.left));
+      result.push(...this._dfsPreorderRec(node.right));
+    }
+    return result;
+  }
+
+  depthFirstSearchInorder(): number[] {
+    return this._dfsInorderRec(this.root);
+  }
+
+  _dfsInorderRec(node: TreeNode | null): number[] {
+    const result: number[] = [];
+    if (node !== null) {
+      result.push(...this._dfsInorderRec(node.left));
+      result.push(node.key);
+      result.push(...this._dfsInorderRec(node.right));
+    }
+    return result;
+  }
+
+  depthFirstSearchPostorder(): number[] {
+    return this._dfsPostorderRec(this.root);
+  }
+
+  _dfsPostorderRec(node: TreeNode | null): number[] {
+    const result: number[] = [];
+    if (node !== null) {
+      result.push(...this._dfsPostorderRec(node.left));
+      result.push(...this._dfsPostorderRec(node.right));
+      result.push(node.key);
+    }
+    return result;
   }
 }
 
-// Usage
-const binaryTree = new BinaryTree();
-binaryTree.insert(5);
-binaryTree.insert(3);
-binaryTree.insert(7);
-binaryTree.insert(2);
-binaryTree.insert(4);
-binaryTree.insert(6);
-binaryTree.insert(8);
+// Exemplo de uso
+const tree = new BinaryTree();
+tree.insert(5);
+tree.insert(3);
+tree.insert(7);
+tree.insert(6);
+tree.insert(2);
+tree.insert(8);
+tree.insert(4);
 
-console.log(binaryTree.search(6)); // Outputs the node with value 6
+console.log("Árvore ordenada:");
+console.log(tree.inorderTraversal());
 
-binaryTree.delete(7);
-console.log(binaryTree.search(7)); // Outputs null (node with value 7 is deleted)
+const searchResult1 = tree.search(7);
+console.log("Procurando valor:", searchResult1 ? searchResult1.key : "Valor não encontrado");
+
+const searchResult2 = tree.search(6);
+console.log("Procurando valor:", searchResult2 ? searchResult2.key : "Valor não encontrado");
+
+tree.delete(3);
+console.log("Árvore após a exclusão do valor 3:");
+console.log(tree.inorderTraversal());
+
+// Exemplo de uso busca em largura e em profundidade
+const tree2 = new BinaryTree();
+tree2.insert(5);
+tree2.insert(3);
+tree2.insert(7);
+tree2.insert(2);
+tree2.insert(4);
+tree2.insert(9);
+
+console.log("Busca em largura (BFS):", tree2.breadthFirstSearch());
+console.log("Busca em profundidade (Pré-ordem):", tree2.depthFirstSearchPreorder());
+console.log("Busca em profundidade (Inordem):", tree2.depthFirstSearchInorder());
+console.log("Busca em profundidade (Pós-ordem):", tree2.depthFirstSearchPostorder());
